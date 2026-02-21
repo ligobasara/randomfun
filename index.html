@@ -73,11 +73,66 @@
       min-height: 3em;
       line-height: 1.4;
       text-shadow: 0 2px 6px rgba(0,0,0,0.4);
+      perspective: 1000px; /* 为了翻牌效果 */
     }
     .tip {
       font-size: 0.95rem;
       opacity: 0.85;
       margin-top: 8px;
+    }
+    /* Loading 动画（旋转小圈） */
+    #loading {
+      display: none;
+      margin: 32px auto;
+      width: 50px;
+      height: 50px;
+      border: 6px solid rgba(255,255,255,0.3);
+      border-top: 6px solid white;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    /* 抽卡翻牌效果 */
+    .flip-card {
+      background-color: transparent;
+      width: 100%;
+      height: 100px; /* 可以调整高度 */
+      perspective: 1000px;
+    }
+    .flip-card-inner {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      text-align: center;
+      transition: transform 0.6s;
+      transform-style: preserve-3d;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    }
+    .flip-card.flipped .flip-card-inner {
+      transform: rotateY(180deg);
+    }
+    .flip-card-front, .flip-card-back {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      backface-visibility: hidden;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.4rem;
+    }
+    .flip-card-front {
+      background: rgba(255,255,255,0.2);
+      color: white;
+    }
+    .flip-card-back {
+      background: #ff6b6b;
+      color: white;
+      transform: rotateY(180deg);
     }
   </style>
 </head>
@@ -94,64 +149,148 @@
 
     <button onclick="recommend()">开始玄学推荐</button>
 
+    <div id="loading"></div>
     <div id="result"></div>
     <div class="tip">相同的输入 → 永远推荐同一个活动</div>
   </div>
 
   <script>
     const activities = [
-      "看IMAX电影 / 杜比影院爽片",
-      "吃火锅 / 川菜 / 粤式早茶大餐",
-      "KTV点到凌晨三点",
-      "商场血拼 / 太古里 / IFS / 万象城",
-      "咖啡馆 / 猫咖 / 书店文艺下午茶",
-      "博物馆 / 美术馆 / 潮流展打卡",
-      "剧本杀 / 狼人杀 / 桌游吧",
-      "密室逃脱 / VR体验馆",
-      "清吧小酌 / 屋顶酒吧",
-      "夜市撸串 / 小吃街扫荡",
-      "足疗 / SPA / 按摩彻底放空",
-      "Livehouse / 脱口秀 / 草莓音乐节",
-      "保龄球 / 飞镖 / 轰趴",
-      "室内攀岩 / 蹦床乐园",
-      "海洋馆 / 动物园遛弯",
-      "共享单车 / 夜骑城市夜景",
-      "陶艺 / 烘焙 / DIY手工课",
-      "主题酒店 / 轰趴馆",
-      "话剧 / 音乐剧 / 沉浸式演出",
-      "室内泳池 / 温泉泡汤"
+      "看IMAX/杜比影院大片",
+      "吃火锅/川菜/粤菜大餐",
+      "KTV通宵唱歌",
+      "商场血拼购物",
+      "咖啡馆/猫咖文艺下午茶",
+      "博物馆/美术馆打卡",
+      "剧本杀/狼人杀/桌游吧",
+      "密室逃脱/VR体验",
+      "清吧/屋顶酒吧小酌",
+      "夜市撸串/小吃街扫荡",
+      "足疗/SPA/按摩放松",
+      "Livehouse/脱口秀/音乐节",
+      "保龄球/台球/飞镖",
+      "室内攀岩/蹦床乐园",
+      "海洋馆/动物园遛弯",
+      "共享单车城市夜骑",
+      "陶艺/烘焙/DIY手工课",
+      "主题酒店/轰趴聚会",
+      "话剧/音乐剧/沉浸式演出",
+      "室内泳池/温泉泡汤",
+      "故宫/长城/历史古迹游",
+      "迪士尼/欢乐谷/主题乐园",
+      "外滩/广州塔/城市夜景",
+      "西湖/玄武湖/公园散步野餐",
+      "爬山/徒步/户外轻运动",
+      "电影院看新片+爆米花",
+      "唱见/电音派对",
+      "轰趴游戏房开黑",
+      "网红餐厅/打卡拍照",
+      "书店/独立书店看书",
+      "瑜伽/健身/普拉提课",
+      "桌游店通宵对战",
+      "VR/电竞馆打游戏",
+      "密室主题馆逃生",
+      "酒吧街蹦迪",
+      "街头美食探店",
+      "美容/美甲/拍照馆",
+      "喜剧脱口秀现场",
+      "演唱会/音乐会",
+      "保龄球馆家庭局",
+      "飞盘/羽毛球/运动约伴",
+      "动物救助站/撸猫狗",
+      "城市观光巴士游",
+      "手工市集逛摊",
+      "陶吧/彩绘/手作体验",
+      "轰趴馆/私人影院",
+      "沉浸式剧场/剧本体验",
+      "温泉酒店/一日游",
+      "古镇/古街慢生活",
+      "博物馆夜场/特展",
+      "咖啡拉花DIY课",
+      "甜品店/蛋糕烘焙",
+      "夜跑/夜骑/城市灯光秀",
+      "密室实景+恐怖主题",
+      "桌游新手教学局",
+      "K歌包厢轰趴",
+      "商场电影+吃饭一条龙",
+      "艺术展/潮流展巡展",
+      "城市露营/天台露营",
+      "民宿/特色酒店住一晚",
+      "街头篮球/滑板公园",
+      "卡丁车/赛车体验",
+      "射箭/真人CS",
+      "陶艺拉坯体验",
+      "香薰/精油SPA",
+      "宠物咖啡馆/狗狗游泳",
+      "城市漫步拍照打卡",
+      "夜宵摊/烧烤局",
+      "独立电影院看文艺片",
+      "Live演出/爵士吧",
+      "城市天台酒吧",
+      "手工皮具/饰品DIY",
+      "VR密室/恐怖逃生",
+      "桌游主题餐厅吃饭玩",
+      "城市灯光节/烟火秀",
+      "温泉足浴+小吃",
+      "博物馆+咖啡馆联动",
+      "古风汉服体验拍照",
+      "城市骑行+夜景",
+      "轰趴+狼人杀通宵",
+      "甜品+桌游组合局",
+      "城市极限运动体验"
     ];
 
     function simpleSeededRandom(seed) {
-      // 极简线性同余生成器（LCG），保证相同seed相同序列
       let x = Math.sin(seed) * 10000;
       return x - Math.floor(x);
     }
 
     function recommend() {
-      let seed = 0;
+      // 先显示 loading 动画
+      document.getElementById("loading").style.display = "block";
+      document.getElementById("result").innerHTML = "";
 
-      const dateVal = document.getElementById("dateInput").value;
-      const numVal  = document.getElementById("numInput").value.trim();
+      // 等 1 秒后执行推荐（模拟 loading 时间，你可以改成 2 秒或更多）
+      setTimeout(function() {
+        let seed = 0;
 
-      if (dateVal) {
-        // yyyy-mm-dd → 转成数字种子
-        const d = new Date(dateVal);
-        seed = d.getFullYear() + d.getMonth() + 1 + d.getDate();
-      } else if (numVal && !isNaN(numVal)) {
-        seed = Number(numVal);
-      } else {
-        // 默认用今天
-        const now = new Date();
-        seed = now.getFullYear() + now.getMonth() + 1 + now.getDate();
-      }
+        const dateVal = document.getElementById("dateInput").value;
+        const numVal  = document.getElementById("numInput").value.trim();
 
-      // 用种子产生伪随机数 → 选活动
-      const r = simpleSeededRandom(seed);
-      const index = Math.floor(r * activities.length);
+        if (dateVal) {
+          const d = new Date(dateVal);
+          seed = d.getFullYear() + d.getMonth() + 1 + d.getDate();
+        } else if (numVal && !isNaN(numVal)) {
+          seed = Number(numVal);
+        } else {
+          // 默认用今天
+          const now = new Date();
+          seed = now.getFullYear() + now.getMonth() + 1 + now.getDate();
+        }
 
-      document.getElementById("result").innerHTML = 
-        `命运给你安排的是：<br><strong>${activities[index]}</strong>`;
+        // 用种子产生伪随机数 → 选活动
+        const r = simpleSeededRandom(seed);
+        const index = Math.floor(r * activities.length);
+        const activity = activities[index];
+
+        // 隐藏 loading
+        document.getElementById("loading").style.display = "none";
+
+        // 显示翻牌效果
+        document.getElementById("result").innerHTML = `
+          <div class="flip-card">
+            <div class="flip-card-inner">
+              <div class="flip-card-front">抽卡中...</div>
+              <div class="flip-card-back">命运给你安排的是：<br><strong>${activity}</strong></div>
+            </div>
+          </div>
+        `;
+
+        // 0.5 秒后触发翻转（让它有动画感）
+        setTimeout(function() {
+          document.querySelector('.flip-card').classList.add('flipped');
+        }, 500);
+      }, 1000); // 1000 是 1 秒
     }
 
     // 页面加载时默认推荐今天的
@@ -159,5 +298,4 @@
   </script>
 
 </body>
-
 </html>
