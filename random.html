@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>今日娱乐怎么玩？——玄学推荐</title>
+  <style>
+    body {
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      min-height: 100vh;
+      margin: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 20px 16px;
+      box-sizing: border-box;
+    }
+    h1 {
+      margin: 20px 0 30px;
+      font-size: 2.1rem;
+      text-shadow: 0 2px 8px rgba(0,0,0,0.3);
+    }
+    .card {
+      background: rgba(255,255,255,0.15);
+      backdrop-filter: blur(10px);
+      border-radius: 16px;
+      padding: 28px 24px;
+      width: 100%;
+      max-width: 420px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.25);
+      border: 1px solid rgba(255,255,255,0.2);
+    }
+    label {
+      display: block;
+      margin: 1.2rem 0 0.5rem;
+      font-size: 1.05rem;
+    }
+    input, button {
+      width: 100%;
+      padding: 14px;
+      margin: 6px 0;
+      border-radius: 10px;
+      border: none;
+      font-size: 1.1rem;
+      box-sizing: border-box;
+    }
+    input {
+      background: rgba(255,255,255,0.25);
+      color: white;
+    }
+    input::placeholder {
+      color: rgba(255,255,255,0.7);
+    }
+    button {
+      background: #ff6b6b;
+      color: white;
+      font-weight: bold;
+      cursor: pointer;
+      margin-top: 24px;
+      transition: all 0.2s;
+    }
+    button:hover {
+      background: #ff4757;
+      transform: translateY(-2px);
+    }
+    #result {
+      margin-top: 32px;
+      font-size: 1.6rem;
+      font-weight: bold;
+      text-align: center;
+      min-height: 3em;
+      line-height: 1.4;
+      text-shadow: 0 2px 6px rgba(0,0,0,0.4);
+    }
+    .tip {
+      font-size: 0.95rem;
+      opacity: 0.85;
+      margin-top: 8px;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>今日娱乐怎么玩？</h1>
+
+  <div class="card">
+    <label>方式1：出生日期 或 今天日期</label>
+    <input type="date" id="dateInput" />
+
+    <label style="margin-top: 28px;">方式2：随便想一个数字</label>
+    <input type="number" id="numInput" placeholder="越大越玄学…" />
+
+    <button onclick="recommend()">开始玄学推荐</button>
+
+    <div id="result"></div>
+    <div class="tip">相同的输入 → 永远推荐同一个活动</div>
+  </div>
+
+  <script>
+    const activities = [
+      "看IMAX电影 / 杜比影院爽片",
+      "吃火锅 / 川菜 / 粤式早茶大餐",
+      "KTV点到凌晨三点",
+      "商场血拼 / 太古里 / IFS / 万象城",
+      "咖啡馆 / 猫咖 / 书店文艺下午茶",
+      "博物馆 / 美术馆 / 潮流展打卡",
+      "剧本杀 / 狼人杀 / 桌游吧",
+      "密室逃脱 / VR体验馆",
+      "清吧小酌 / 屋顶酒吧",
+      "夜市撸串 / 小吃街扫荡",
+      "足疗 / SPA / 按摩彻底放空",
+      "Livehouse / 脱口秀 / 草莓音乐节",
+      "保龄球 / 飞镖 / 轰趴",
+      "室内攀岩 / 蹦床乐园",
+      "海洋馆 / 动物园遛弯",
+      "共享单车 / 夜骑城市夜景",
+      "陶艺 / 烘焙 / DIY手工课",
+      "主题酒店 / 轰趴馆",
+      "话剧 / 音乐剧 / 沉浸式演出",
+      "室内泳池 / 温泉泡汤"
+    ];
+
+    function simpleSeededRandom(seed) {
+      // 极简线性同余生成器（LCG），保证相同seed相同序列
+      let x = Math.sin(seed) * 10000;
+      return x - Math.floor(x);
+    }
+
+    function recommend() {
+      let seed = 0;
+
+      const dateVal = document.getElementById("dateInput").value;
+      const numVal  = document.getElementById("numInput").value.trim();
+
+      if (dateVal) {
+        // yyyy-mm-dd → 转成数字种子
+        const d = new Date(dateVal);
+        seed = d.getFullYear() + d.getMonth() + 1 + d.getDate();
+      } else if (numVal && !isNaN(numVal)) {
+        seed = Number(numVal);
+      } else {
+        // 默认用今天
+        const now = new Date();
+        seed = now.getFullYear() + now.getMonth() + 1 + now.getDate();
+      }
+
+      // 用种子产生伪随机数 → 选活动
+      const r = simpleSeededRandom(seed);
+      const index = Math.floor(r * activities.length);
+
+      document.getElementById("result").innerHTML = 
+        `命运给你安排的是：<br><strong>${activities[index]}</strong>`;
+    }
+
+    // 页面加载时默认推荐今天的
+    window.onload = recommend;
+  </script>
+
+</body>
+</html>
